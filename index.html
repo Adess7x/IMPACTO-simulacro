@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulacro de examen SUCAMEC - Preparación para licencia de armas de fuego. Practica con preguntas oficiales.">
+    <title>Simulacro SUCAMEC</title>
+    <link rel="icon" href="impactologo.ico" type="image/x-icon">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f4f4f4 0%, #e8e8e8 100%);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .quiz-container {
+            background-color: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 740px;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            font-size: 1.5em;
+            margin: 0 0 8px 0;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.85em;
+            margin: 0 0 20px 0;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .timer {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            background: #f0f0f0;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+        .timer.warning {
+            color: #d32f2f;
+            background: #ffebee;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        .progress-bar-bg {
+            background: #e0e0e0;
+            border-radius: 8px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0056b3, #007bff);
+            border-radius: 8px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .pregunta-numero {
+            font-size: 0.85em;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .pregunta-texto {
+            font-size: 1.15em;
+            margin-bottom: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .opciones label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 12px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            line-height: 1.3;
+        }
+        .opciones label:hover {
+            background-color: #f0f4ff;
+            border-color: #b3d4ff;
+        }
+        .opciones label.selected {
+            background-color: #e6f0ff;
+            border-color: #007bff;
+        }
+        .opciones input[type="radio"] {
+            margin-top: 2px;
+            accent-color: #0056b3;
+            flex-shrink: 0;
+        }
+        .opciones .opcion-letra {
+            font-weight: 600;
+            color: #555;
+            flex-shrink: 0;
+        }
+        .opciones .opcion-texto {
+            flex: 1;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: block;
+            width: 100%;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .resultados {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
+        .resultados h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .score-display {
+            text-align: center;
+            font-size: 1.3em;
+            margin: 16px 0;
+        }
+        .correcto {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        .incorrecto {
+            color: #d32f2f;
+            font-weight: 600;
+        }
+        .result-item {
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item p {
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        .resumen-pregunta {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        .resumen-tu-respuesta {
+            font-size: 0.9em;
+        }
+        .resumen-correcta {
+            font-size: 0.9em;
+        }
+        .instrucciones {
+            text-align: left;
+        }
+        .instrucciones h2 {
+            text-align: center;
+            color: #0056b3;
+            margin-top: 0;
+        }
+        .instrucciones ul {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0;
+        }
+        .instrucciones ul li {
+            padding: 8px 0 8px 28px;
+            position: relative;
+            line-height: 1.4;
+        }
+        .instrucciones ul li::before {
+            content: "•";
+            color: #0056b3;
+            font-weight: bold;
+            font-size: 1.3em;
+            position: absolute;
+            left: 8px;
+            top: 6px;
+        }
+        .instrucciones .btn-comenzar {
+            margin-top: 24px;
+        }
+        .watermark {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #999;
+            opacity: 0.7;
+            user-select: none;
+        }
+        .watermark strong {
+            color: #666;
+        }
+        .no-scroll {
+            overflow: hidden;
+        }
+        @media (max-width: 500px) {
+            body { padding: 12px; }
+            .quiz-container { padding: 16px; }
+            h1 { font-size: 1.2em; }
+            .pregunta-texto { font-size: 1em; }
+            .top-bar { flex-direction: column; align-items: stretch; }
+            .timer { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>Simulacro de SUCAMEC - <span style="color:#000;">IMPACTO</span> <img src="impactologo.ico" alt="" style="height:36px;width:36px;vertical-align:middle;"></h1>
+        <p class="subtitle">Examen de preparación para licencia de armas de fuego</p>
+
+        <div id="instrucciones" class="instrucciones">
+            <h2>Instrucciones</h2>
+            <ul>
+                <li>El simulacro consta de <strong id="instruc-cantidad">5</strong> preguntas seleccionadas aleatoriamente de distintos temas.</li>
+                <li>Selecciona la respuesta que consideres correcta y presiona <strong>"Siguiente"</strong>.</li>
+                <li>No podrás volver atrás una vez avanzada una pregunta.</li>
+                <li>Al finalizar verás tu puntaje y el detalle de respuestas correctas e incorrectas.</li>
+                <li>La nota mínima aprobatoria es de <strong id="instruc-nota">3</strong> respuestas correctas.</li>
+                <li>Cuentas con <strong id="instruc-tiempo">5</strong> minutos para completar el simulacro.</li>
+            </ul>
+            <button id="comenzar-btn" class="btn-comenzar">Comenzar Simulacro</button>
+        </div>
+
+        <div class="top-bar" id="top-bar" style="display:none;">
+            <div class="timer" id="timer-display">--:--</div>
+            <div id="config-display" style="font-size:0.85em;color:#666;"></div>
+        </div>
+
+        <div class="progress-container" id="progress-container" style="display:none;">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+                <span id="progress-label">Pregunta 0 de 0</span>
+                <span id="progress-pct">0%</span>
+            </div>
+        </div>
+
+        <div id="pregunta-actual" style="display:none;">
+            <div class="pregunta-numero" id="numero-pregunta"></div>
+            <div class="pregunta-texto" id="texto-pregunta"></div>
+            <div class="opciones" id="opciones-pregunta"></div>
+            <div id="feedback"></div>
+            <button id="siguiente-btn" disabled>Siguiente Pregunta</button>
+        </div>
+
+        <div id="resultados-quiz" class="resultados" style="display:none;">
+            <h2>Resultados del Simulacro</h2>
+            <div class="score-display">
+                <p id="puntaje"></p>
+                <p id="mensaje-aprobacion"></p>
+            </div>
+            <div id="resumen-respuestas"></div>
+            <button id="reiniciar-btn">Reiniciar Simulacro</button>
+        </div>
+    </div>
+
+    <div class="watermark"><strong style="color:#000;">IMPACTO</strong> <img src="impactologo.ico" alt="" style="height:20px;width:20px;vertical-align:middle;"> - Av Almirante Miguel Grau 1350 - Barranco, Lima</div>
+
+    <script>
+        // ─── CONFIGURACIÓN ────────────────────────────────────────────────────
+        const CONFIG = {
+            preguntasPorSimulacro: 5,
+            notaMinimaAprobar: 3,
+            tiempoLimiteSegundos: 300,
+        };
+
+        // ─── DATOS DE PREGUNTAS ──────────────────────────────────────────────
+        const todasLasPreguntas = [
+            {
+                pregunta: "Según el artículo 279-G Código Penal Peruano, constituye delito el que sin estar debidamente autorizado:",
+                opciones: { a: "Presta un arma de fuego.", b: "Porta o tiene en su poder armas de fuego.", c: "Trafica armas de fuego.", d: "A, B y C son correctas.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "delitos_codigo_penal"
+            },
+            {
+                pregunta: "Según el Artículo 279-G, del Código Penal Peruano constituye delito el que con fines ilícitos:",
+                opciones: { a: "Facilita un arma de fuego.", b: "Alquila un arma de fuego.", c: "Presta un arma de fuego.", d: "A, B y C son correctas.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "delitos_codigo_penal"
+            },
+            {
+                pregunta: "Según el Artículo 279-G del Código Penal Peruano constituye delito el que sin estar debidamente autorizado:",
+                opciones: { a: "Fabrica y comercializa armas de fuego.", b: "Modifica y almacenan armas de fuego.", c: "Usa y porta armas de fuego.", d: "Trafica y suministra armas de fuego.", e: "Todas las anteriores son correctas." },
+                respuesta: "e",
+                tema: "delitos_codigo_penal"
+            },
+            {
+                pregunta: "Según el Artículo 279-G del Código Penal Peruano constituye delito el que sin estar debidamente autorizado:",
+                opciones: { a: "Fabrica y comercializa cualquier tipo de municiones.", b: "Fabrica y comercializa accesorios de armas de fuego.", c: "Comercializa materiales destinados a la fabricación de armas de fuego o municiones.", d: "A, B y C son correctas.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "delitos_codigo_penal"
+            },
+            {
+                pregunta: "Según el Artículo 70 numeral 70.3 de la Ley 30299 podrán ser inhabilitadas por la SUCAMEC por un lapso de dos (02) años las personas que reporten en dos eventos distintos en un lapso de 2 años:",
+                opciones: { a: "La pérdida de arma de fuego.", b: "El hurto de arma de fuego.", c: "El robo de arma de fuego.", d: "A, B y C son correctas.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "obligaciones_usuario"
+            },
+            {
+                pregunta: "Según el Artículo 70 numeral 70.1 de la Ley 30299 la pérdida, robo o hurto de cualquier arma de fuego debe ser comunicada a la SUCAMEC dentro de:",
+                opciones: { a: "72 horas.", b: "30 días.", c: "48 horas.", d: "24 horas.", e: "12 horas." },
+                respuesta: "c",
+                tema: "obligaciones_usuario"
+            },
+            {
+                pregunta: "Según el Art.20 del Reglamento, no cumplir con trasladar las armas de fuego descargadas o desabastecidas bajo la modalidad de Deporte y tiro recreativo es una falta grave y se sanciona con:",
+                opciones: { a: "Multa.", b: "Decomiso.", c: "Incautación.", d: "Cancelación de licencia.", e: "A y B son correctas." },
+                respuesta: "e",
+                tema: "infracciones_conducta"
+            },
+            {
+                pregunta: "Según el Art.37 Inciso e) de la Ley 30299 portar o usar armas de fuego bajo el consumo de alcohol o bajo los efectos de sustancias estupefacientes o psicotrópicas es una falta muy grave y se sanciona con:",
+                opciones: { a: "Multa.", b: "Decomiso.", c: "Internamiento temporal.", d: "Incautación.", e: "A y B son correctas." },
+                respuesta: "e",
+                tema: "infracciones_conducta"
+            },
+            {
+                pregunta: "Según el Art.37 Inciso h) de la Ley 30299 Usar un arma distinta a la indicada en la tarjeta de propiedad o autorizada por la licencia de uso es una falta muy grave y se sanciona con:",
+                opciones: { a: "Depósito temporal.", b: "Internamiento por 90 días.", c: "Multa.", d: "Decomiso.", e: "C y D son correctas." },
+                respuesta: "e",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Art.37 Inciso m) de la Ley 30299 usar silenciadores o dispositivos que alteren u oculten la apariencia o funcionamiento de las armas, excepto en armas destinadas para caza es una falta muy grave y se sanciona con:",
+                opciones: { a: "Depósito temporal.", b: "Internamiento por 120 días.", c: "Multa y decomiso.", d: "Cancelación de la licencia en forma temporal.", e: "Ninguna de las anteriores." },
+                respuesta: "c",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Art.37 Inciso f) de la Ley 30299 portar o usar armas de fuego en manifestaciones públicas, espectáculos con afluencia de público, centros de esparcimiento entre otros espacios públicos es una falta muy grave y se sanciona con:",
+                opciones: { a: "Internamiento del arma por 30 días.", b: "Multa.", c: "Decomiso.", d: "Incautación.", e: "B y C son correctas." },
+                respuesta: "e",
+                tema: "infracciones_conducta"
+            },
+            {
+                pregunta: "Según el Art.27 del Reglamento de la Ley 30299 Almacenar, exhibir, portar o poseer armas de terceros sin autorización es una falta muy grave y se sanciona con:",
+                opciones: { a: "Cancelación de la licencia por 90 días.", b: "Internamiento del arma por 120 días.", c: "Incautación y decomiso.", d: "Multa y decomiso.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 16.7 del Reglamento de la Ley 30299 Transferir, otorgar, dar o ceder armas de fuego a terceros que no tengan autorización o licencia de uso es una falta muy grave y se sanciona con:",
+                opciones: { a: "Cancelación de la licencia.", b: "Internamiento temporal del arma.", c: "Decomiso del arma.", d: "Multa y decomiso.", e: "A y C son correctas." },
+                respuesta: "e",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 32 de la Ley 30299 no depositar el arma de fuego por disposición o mandato de la autoridad competente en el plazo establecido (SUCAMEC, PNP, Poder Judicial o Ministerio Público) es una falta muy grave y se sanciona con:",
+                opciones: { a: "Cancelación de la licencia de uso de arma de fuego.", b: "Internamiento por 30 días del arma de fuego.", c: "Decomiso del arma.", d: "Multa y decomiso.", e: "A y C son correctas." },
+                respuesta: "a",
+                tema: "infracciones_administrativas"
+            },
+            {
+                pregunta: "Según el Artículo 37 de la Ley 30299 Art.18,19,20,21,22 y 23 del Reglamento, portar o usar armas de fuego en una modalidad distinta a la autorizada es una falta muy grave y se sanciona con:",
+                opciones: { a: "Cancelación de la licencia de uso de arma de fuego.", b: "Decomiso del arma.", c: "Internamiento del arma por 90 días.", d: "Multa y decomiso.", e: "A y B son correctas." },
+                respuesta: "e",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 37 Inciso b) de la Ley 30299 efectuar modificaciones que alteren o eliminen las características identificatorias del arma de fuego o efectuar modificaciones que alteren la cadencia de tiro, el calibre o la potencia del arma de fuego es una falta muy grave y se sanciona con:",
+                opciones: { a: "Multa.", b: "Cancelación de la licencia de uso de arma de fuego y decomiso.", c: "Internamiento del arma por 60 días.", d: "Multa y decomiso.", e: "Todas las anteriores son correctas." },
+                respuesta: "b",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 16 del Reglamento de la Ley 30299 portar, usar, importar, comercializar armas de fuego de cadencia automática o con calibres mayores a las permitidas es una falta muy grave y se sanciona con:",
+                opciones: { a: "Cancelación de la licencia de arma de fuego.", b: "Multa.", c: "Decomiso.", d: "Internamiento del arma por 120 días.", e: "A y C son correctas." },
+                respuesta: "e",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 37 Inciso b) de la Ley 30299 portar o usar armas de fuego de uso civil con las letras o números identificatorios erradicados, ilegibles, modificados o borrados, es una falta muy grave y se sanciona con:",
+                opciones: { a: "Internamiento temporal del arma de fuego.", b: "Multa.", c: "Decomiso y cancelación de la licencia de uso de arma de fuego.", d: "Multa y decomiso.", e: "A y B son correctas." },
+                respuesta: "c",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 37 Inciso c) de la Ley 30299 portar armas con la cadencia el calibre o la potencia alteradas o modificadas, es una falta muy grave y se sanciona con:",
+                opciones: { a: "Internamiento temporal del arma de fuego.", b: "Multa.", c: "Decomiso y cancelación de la licencia de uso de arma de fuego.", d: "Multa y decomiso.", e: "Internamiento por 90 días del arma de fuego." },
+                respuesta: "c",
+                tema: "infracciones_arma_especifica"
+            },
+            {
+                pregunta: "Según el Artículo 37 literal g) de la Ley 30299 y Artículo 28 del Reglamento poseer, portar o usar armas de fuego sin licencia de uso, es una falta muy grave y se sanciona con:",
+                opciones: { a: "Internamiento temporal del arma de fuego.", b: "Incautación.", c: "Decomiso y cancelación de la licencia de uso de arma de fuego.", d: "Multa y decomiso.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "infracciones_conducta"
+            },
+            {
+                pregunta: "En el hogar las armas de fuego se deben guardar:",
+                opciones: { a: "Abastecidas y en un lugar seguro bajo llave.", b: "Cargadas listas para ser usadas.", c: "Descargadas y separadas de la munición.", d: "En un lugar seguro bajo llave.", e: "C y D son correctas." },
+                respuesta: "e",
+                tema: "seguridad_hogar"
+            },
+            {
+                pregunta: "En el hogar los miembros de la familia deben:",
+                opciones: { a: "Conocer los riesgos que existe al manipular un arma de fuego.", b: "Aprender a usar el arma de fuego.", c: "Aprender a disparar.", d: "Tener la llave de la caja donde se guarda el arma.", e: "Ninguna de las anteriores." },
+                respuesta: "a",
+                tema: "seguridad_hogar"
+            },
+            {
+                pregunta: "En el hogar explicar a la familia especialmente a los niños en caso encuentren un arma de fuego procedan a:",
+                opciones: { a: "Que la dejen donde esté.", b: "Que avisen a una persona adulta.", c: "Que la lleven a su domicilio.", d: "Que verifiquen si está cargada.", e: "A y B son correctas." },
+                respuesta: "e",
+                tema: "seguridad_hogar_ninos"
+            },
+            {
+                pregunta: "En el manejo de la pistola cuál es la primera medida de seguridad a tener en cuenta:",
+                opciones: { a: "Rastrillar 3 veces la corredera de la pistola y percutar.", b: "Verificar la recámara de la pistola.", c: "Apuntar a un lugar seguro y retirar la cacerina de la pistola.", d: "Disparar el arma a un sitio donde no se pueda lastimar a nadie.", e: "Mirar por la boca del cañón." },
+                respuesta: "c",
+                tema: "manejo_seguro_pistola"
+            },
+            {
+                pregunta: "En el manejo de cualquier arma que es lo primero que se debe hacer antes de manipularla:",
+                opciones: { a: "Mirar por la boca del cañón para verificar si el arma está cargada.", b: "Apuntar el arma a un lugar seguro donde no pueda dañar a otras personas.", c: "Desabastecer el arma de fuego.", d: "Desensamblar el arma de fuego.", e: "Presionar el disparador." },
+                respuesta: "b",
+                tema: "manejo_seguro_general"
+            },
+            {
+                pregunta: "En el manejo del revolver cuál es la primera medida de seguridad a tener en cuenta:",
+                opciones: { a: "Presionar el disparador.", b: "Apuntar a una persona.", c: "Mirar por la boca del cañón.", d: "Amartillar el arma de fuego.", e: "Ninguna de las anteriores es correcta." },
+                respuesta: "e",
+                tema: "manejo_seguro_revolver"
+            },
+            {
+                pregunta: "Marque la alternativa incorrecta en las medidas de seguridad en el manejo de una pistola:",
+                opciones: { a: "Apuntar a un lugar seguro donde no se pueda dañar a nadie.", b: "No apuntar a algo o alguien al que no se quiera disparar.", c: "Colocar el dedo en el disparador o gatillo sólo si se va a disparar.", d: "Verificar la recámara de la pistola.", e: "Percutar la pistola para liberar el cartucho de la recámara." },
+                respuesta: "e",
+                tema: "manejo_seguro_pistola"
+            },
+            {
+                pregunta: "En el manejo del revólver, si este se encuentra amartillado, que acción debe realizarse para no disparar el arma:",
+                opciones: { a: "Liberar el tambor del revolver.", b: "Disparar hacia una zona segura.", c: "Llevar hacia atrás el martillo.", d: "Llevar simultáneamente el disparador y el martillo hacia delante.", e: "Quitar la varilla extractora." },
+                respuesta: "d",
+                tema: "manejo_seguro_revolver"
+            },
+            {
+                pregunta: "Las armas largas pueden ser usadas para la modalidad de defensa personal siempre que el solicitante habite en:",
+                opciones: { a: "Zona Urbana.", b: "Zona Industrial.", c: "Zona Rural.", d: "Zona Residencial.", e: "A y C son correctas." },
+                respuesta: "c",
+                tema: "modalidades_uso_defensa"
+            },
+            {
+                pregunta: "Marque la respuesta correcta: (art. 25 del Reglamento de la Ley 30299)",
+                opciones: {
+                    a: "Para las armas de fuego de defensa personal se puede portar para uso inmediato hasta 70 setenta municiones.",
+                    b: "Para las armas de fuego de defensa personal se puede portar para uso inmediato hasta 60 sesenta municiones.",
+                    c: "Para las armas de fuego de defensa personal se puede portar para uso inmediato hasta 50 cincuenta municiones.",
+                    d: "Para las armas de fuego de defensa personal se puede portar para uso inmediato hasta 80 ochenta municiones.",
+                    e: "Para las armas de fuego de defensa personal se puede portar para uso inmediato hasta 90 noventa municiones."
+                },
+                respuesta: "a",
+                tema: "reglamento_municiones_defensa"
+            },
+            {
+                pregunta: "Las licencias en la modalidad de defensa personal también son conocidas como:",
+                opciones: { a: "Licencia tipo A.", b: "Licencia tipo B.", c: "Licencia tipo L2.", d: "Licencia tipo L1.", e: "Luaspe." },
+                respuesta: "d",
+                tema: "tipos_licencia"
+            },
+            {
+                pregunta: "Es un requisito para la licencia en la modalidad de defensa personal:",
+                opciones: {
+                    a: "Copia de la autorización expedida por SERFOR.",
+                    b: "Constancia de acreditación emitida por una asociación o club de tiro reconocida por la Federación Deportiva Nacional.",
+                    c: "Resolución emitida por el Ministerio de Cultura.",
+                    d: "Expresión de motivos conforme a lo establecido en el numeral 7.11 del artículo 7 del Reglamento de la Ley 30299.",
+                    e: "Declaración Jurada de la efectiva posesión del o las armas de fuego de su propiedad."
+                },
+                respuesta: "d",
+                tema: "requisitos_licencia_defensa"
+            },
+            {
+                pregunta: "Las licencias en la modalidad de caza también son conocidas como:",
+                opciones: { a: "Licencia tipo B.", b: "Licencia tipo L6", c: "Licencia tipo A.", d: "Licencia tipo L2.", e: "Licencia SERFOR" },
+                respuesta: "d",
+                tema: "tipos_licencia_caza"
+            },
+            {
+                pregunta: "Marque la alternativa correcta:",
+                opciones: {
+                    a: "Las armas de fuego en la modalidad de caza deben trasladarse descargadas y desabastecidas con el embalaje adecuado.",
+                    b: "Está permitido el uso del arma de fuego bajo la modalidad de caza durante su traslado.",
+                    c: "Está permitido usar el arma de la modalidad de defensa para la caza deportiva",
+                    d: "Sólo las armas largas están permitidas para actividades de caza deportiva.",
+                    e: "Ninguna de las anteriores."
+                },
+                respuesta: "a",
+                tema: "normativa_caza_traslado"
+            },
+            {
+                pregunta: "Marque la alternativa correcta respecto a la modalidad de caza:",
+                opciones: {
+                    a: "La licencia de caza es igual o equivale a la licencia SERFOR",
+                    b: "La licencia de caza tiene una duración de 4 años.",
+                    c: "Las personas naturales están obligadas a gestionar ante el Servicio Nacional Forestal y de Fauna Silvestre - SERFOR o los Gobiernos Regionales donde MINAGRI haya efectuado la transferencia de competencias en materia forestal y de fauna silvestre, la licencia vigente que demuestra su condición de cazadores.",
+                    d: "La caza deportiva es autorizada por el Comando Conjunto de las Fuerzas Armadas.",
+                    e: "Ninguna de las Anteriores es correcta."
+                },
+                respuesta: "c",
+                tema: "normativa_caza_licencia"
+            },
+            {
+                pregunta: "El uso de las armas de fuego autorizadas en la modalidad de caza se encuentra permitido en:",
+                opciones: {
+                    a: "Galerías de tiro.",
+                    b: "En áreas rurales y eriazas para efectos de calibración o entrenamiento.",
+                    c: "En áreas rurales, eriazas ámbitos o zonas de cacería determinadas por la autoridad competente de acuerdo a la ley de la materia.",
+                    d: "Deben trasladarse descargadas y desabastecidas con el embalaje adecuado.",
+                    e: "Todas las anteriores son correctas."
+                },
+                respuesta: "c",
+                tema: "normativa_caza_lugares"
+            },
+             {
+                pregunta: "Son Cartuchos y Municiones para las actividades de caza:",
+                opciones: {
+                    a: "Cartuchos no mayores a doce (12) GAUGE, con excepción de las municiones establecidas en la Cuarta Disposición Complementaria Transitoria de la Ley.",
+                    b: "Cartuchos especiales con sustancia química para fines de conservación de fauna.",
+                    c: "Municiones con proyectil de núcleo de acero.",
+                    d: "A y b son correctas.",
+                    e: "A, b y c son correctas."
+                },
+                respuesta: "d",
+                tema: "municiones_caza"
+            },
+            {
+                pregunta: "Las licencias en la modalidad de deporte y tiro recreativo también son conocidas como:",
+                opciones: { a: "Licencia tipo L3.", b: "Licencia tipo LD.", c: "Licencia tipo D.", d: "Licencia tipo LD3.", e: "Licencia tipo FPT." },
+                respuesta: "a",
+                tema: "tipos_licencia_deporte"
+            },
+            {
+                pregunta: "En la renovación de la licencia de deporte y tiro recreativo cual es el requisito que ya no se debe presentar:",
+                opciones: {
+                    a: "La evaluación teórica practica aprobada ante SUCAMEC.",
+                    b: "La declaración Jurada de cumplir con las condiciones establecidas en el artículo 7 de la Ley.",
+                    c: "El certificado de salud psicosomático para la obtención de licencias de arma de fuego, emitido por una IPRESS registrada en SUSALUD.",
+                    d: "Constancia de acreditación que emita el club de tiro, la asociación deportiva u otra organización deportiva de tiro reconocida por la Federación Deportiva Nacional.",
+                    e: "Resolución de la FPT reconociendo al solicitante como deportista calificado."
+                },
+                respuesta: "a",
+                tema: "requisitos_licencia_deporte_renovacion"
+            },
+            {
+                pregunta: "Marque la alternativa correcta respecto a la modalidad de deporte y tiro recreativo:",
+                opciones: {
+                    a: "El uso del arma de fuego de deporte se encuentra permitido durante su traslado.",
+                    b: "Las armas de fuego autorizadas para la modalidad de deporte y tiro recreativo se usan para tiro de reacción.",
+                    c: "Las armas de fuego autorizadas bajo la modalidad de deporte y tiro recreativo deben trasladarse descargadas, desabastecidas y con el embalaje adecuado.",
+                    d: "Las armas de fuego autorizadas para la modalidad de deporte y tiro recreativo se pueden usar en la modalidad de defensa personal en zona rural.",
+                    e: "Ninguna de las anteriores es correcta."
+                },
+                respuesta: "c",
+                tema: "normativa_deporte_traslado"
+            },
+            {
+                pregunta: "No es un requisito para la modalidad de colección:",
+                opciones: {
+                    a: "Declaración Jurada de la efectiva posesión del o las armas de fuego de su propiedad.",
+                    b: "Formulario de solicitud debidamente suscrito y firmado.",
+                    c: "Exhibir documento de identidad vigente y legible o copia del carné de extranjería vigente y legible.",
+                    d: "Resolución emitida por el Ministerio de Cultura para Coleccionistas.",
+                    e: "Haber aprobado la evaluación Teórico Practica ante la SUCAMEC."
+                },
+                respuesta: "d",
+                tema: "requisitos_licencia_coleccion"
+            },
+            {
+                pregunta: "Marque la respuesta correcta respecto a la modalidad de colección:",
+                opciones: {
+                    a: "Las armas de colección requieren contar con tarjeta de propiedad exceptuándose el requisito del número de identificación a las armas manufacturadas en el año 1898 o antes.",
+                    b: "Las armas de fuego de colección pueden ser usadas en la modalidad de caza.",
+                    c: "La SUCAMEC no autoriza el traslado de armas de fuego de colección con fines didácticos.",
+                    d: "Son armas de colección aquellas fabricadas hasta el año 1888.",
+                    e: "No está permitido la compra y uso de municiones para el arma de fuego de colección."
+                },
+                respuesta: "a",
+                tema: "normativa_coleccion"
+            },
+            {
+                pregunta: "Cuál es el requisito adicional para la modalidad de colección:",
+                opciones: {
+                    a: "Declaración Jurada de la Efectiva posesión de las armas de su propiedad.",
+                    b: "Resolución del Ministerio de Cultura reconociendo al solicitante como coleccionista.",
+                    c: "Constancia de una asociación o club de coleccionistas acreditado debidamente en el ministerio de Cultura.",
+                    d: "Certificado temporal donde se acredite la fecha de fabricación del arma de fuego, mediante prueba de carbono emitido por la Dirección de Criminalística de la Policía Nacional.",
+                    e: "Ninguna de las anteriores."
+                },
+                respuesta: "e",
+                tema: "requisitos_licencia_coleccion"
+            },
+            {
+                pregunta: "Marque la Respuesta Correcta respecto a las armas de colección:",
+                opciones: {
+                    a: "Deben permanecer descargadas y desabastecidas, asimismo debe desmontarse el mecanismo de disparo si sus características lo permiten, salvo fines didácticos o de exhibición.",
+                    b: "El porte de las armas de colección se encuentra permitido.",
+                    c: "La compra y uso de municiones para el arma de fuego de colección está permitido en galerías de tiro o para fines de exhibición.",
+                    d: "A y C son correctas.",
+                    e: "Todas son correctas."
+                },
+                respuesta: "d",
+                tema: "normativa_coleccion_manejo"
+            },
+            {
+                pregunta: "Las licencias en la modalidad de seguridad privada son conocidas como:",
+                opciones: { a: "Licencia tipo C.", b: "Licencia tipo L3.", c: "Licencia tipo L6.", d: "Licencia tipo L4.", e: "Licencia tipo Colección." },
+                respuesta: "d",
+                tema: "tipos_licencia_seguridad"
+            },
+            {
+                pregunta: "Las licencias en la modalidad colección son conocidas como:",
+                opciones: { a: "Licencia tipo S.", b: "Licencia tipo LS.", c: "Licencia tipo L6.", d: "Licencia tipo L5S.", e: "Licencia tipo Sispe." },
+                respuesta: "c",
+                tema: "tipos_licencia_coleccion"
+            },
+            {
+                pregunta: "Marque la respuesta correcta respecto a la renovación de licencia Sispe:",
+                opciones: {
+                    a: "Para la renovación de licencia del personal de seguridad estos deberán adjuntar los mismos requisitos exigidos para el trámite de licencia inicial.",
+                    b: "Para la renovación de licencia del personal de seguridad ya no deberá adjuntar el requisito de evaluación teórico práctica.",
+                    c: "Para la renovación de licencia del personal de seguridad ya no deberá adjuntar el requisito de certificado de salud psicosomático.",
+                    d: "Para la renovación de licencia del personal de seguridad ya no deberá adjuntar el requisito de archivo con foto digitalizada.",
+                    e: "Para la renovación de licencia del personal de seguridad ya no deberá adjuntar el requisito de verificación de arma de fuego."
+                },
+                respuesta: "a",
+                tema: "requisitos_licencia_sispe_renovacion"
+            },
+            {
+                pregunta: "Marque la alternativa incorrecta respecto a los requisitos para la licencia Sispe:",
+                opciones: {
+                    a: "Solicitud debidamente suscrita y firmada por el solicitante.",
+                    b: "Haber aprobado la evaluación teórica practica ante la SUCAMEC.",
+                    c: "Declaración Jurada de cumplir con las condiciones establecidas en el artículo 7 de la Ley, de acuerdo al formulario aprobado por SUCAMEC.",
+                    d: "Copia del Carnet de personal de seguridad emitido por la Gerencia de Servicio de Seguridad Privada.",
+                    e: "Copia del comprobante que acredite el pago correspondiente por el trámite, indicando número de RUC vigente del solicitante."
+                },
+                respuesta: "e",
+                tema: "requisitos_licencia_sispe"
+            },
+            {
+                pregunta: "Según el Artículo 15 de la Ley 30299 el personal de seguridad puede usar:",
+                opciones: { a: "Pistolas.", b: "Revólveres.", c: "Escopetas.", d: "Carabinas.", e: "Todas las anteriores son correctas." },
+                respuesta: "e",
+                tema: "armas_permitidas_seguridad"
+            },
+            {
+                pregunta: "El calibre en las armas de fuego se mide:",
+                opciones: { a: "En el diámetro interior del cañón de las armas de fuego.", b: "En el diámetro exterior del cañón de las armas de fuego.", c: "En el diámetro exterior de los casquillos.", d: "En la recámara.", e: "Ninguna de las anteriores." },
+                respuesta: "a",
+                tema: "definicion_calibre"
+            },
+            {
+                pregunta: "Cuál de los siguientes calibres NO es considerado calibre de escopeta:",
+                opciones: { a: "410 mm.", b: "16 GA.", c: "12 GA.", d: "10 GA.", e: "Ninguna de las anteriores." },
+                respuesta: "e",
+                tema: "calibres_escopeta"
+            },
+            {
+                pregunta: "Es una medida de seguridad en el manejo de la escopeta:",
+                opciones: {
+                    a: "No dirigir el cañón a otra persona, así estuviera descargada.",
+                    b: "Presumir que el arma siempre se encuentra cargada.",
+                    c: "Trasladar el arma cargada en un embalaje adecuado.",
+                    d: "A y B son correctas.",
+                    e: "B y C son correctas."
+                },
+                respuesta: "d",
+                tema: "manejo_seguro_escopeta"
+            },
+            {
+                pregunta: "¿Qué es lo que nunca debemos hacer cuando desconozcamos el funcionamiento de una escopeta?:",
+                opciones: { a: "Percutar para verificar que no esté cargada.", b: "Manipularla.", c: "Guardarla en su funda.", d: "A y B son correctas.", e: "Todas las anteriores." },
+                respuesta: "d",
+                tema: "manejo_seguro_escopeta_desconocimiento"
+            },
+            {
+                pregunta: "¿Cuántos golpes de seguridad es recomendable con la escopeta luego de cerciorarte que no hay munición en la recámara?:",
+                opciones: { a: "2 golpes.", b: "1 golpe.", c: "3 golpes.", d: "4 golpes.", e: "Ningún golpe." },
+                respuesta: "c",
+                tema: "manejo_seguro_escopeta_verificacion"
+            },
+            {
+                pregunta: "La escopeta es considerada como:",
+                opciones: { a: "Arma corta.", b: "Arma Larga.", c: "Arma individual.", d: "Arma colectiva.", e: "B y C son Correctas." },
+                respuesta: "e",
+                tema: "clasificacion_armas"
+            },
+            {
+                pregunta: "Según su funcionamiento las escopetas autorizadas para uso civil pueden ser:",
+                opciones: { a: "Automáticas.", b: "Semiautomática.", c: "Tiro por tiro.", d: "B y C son correctas.", e: "Todas las anteriores." },
+                respuesta: "d",
+                tema: "funcionamiento_escopetas"
+            },
+            {
+                pregunta: "Las escopetas de caza generalmente tienen el ánima:",
+                opciones: { a: "Rayada.", b: "Estriada.", c: "Lisa.", d: "A y C son correctas.", e: "Ninguna de las anteriores." },
+                respuesta: "c",
+                tema: "caracteristicas_escopeta_caza"
+            },
+            {
+                pregunta: "¿Qué función cumple el guardamonte en una escopeta de caza?",
+                opciones: { a: "Para proteger la mano del tirador.", b: "Para proteger el eyector.", c: "Para proteger el seguro del arma.", d: "Para proteger el disparador.", e: "Para proteger el destrabador." },
+                respuesta: "d",
+                tema: "partes_arma_escopeta"
+            },
+            {
+                pregunta: "¿Qué función cumple la culata de una escopeta de caza?",
+                opciones: {
+                    a: "Hace que el encare y el apoyo del arma en el hombro del tirador, sean correctos.",
+                    b: "Para minimizar los efectos de la fuerza de retroceso al ser disparada el arma.",
+                    c: "Para eyectar los casquillos.",
+                    d: "Para que el arma tenga menos estruendo.",
+                    e: "A y B son correctas."
+                },
+                respuesta: "e",
+                tema: "partes_arma_escopeta"
+            },
+            {
+                pregunta: "La cantonera de la escopeta sirve para:",
+                opciones: { a: "Para apuntar el arma.", b: "Para cargar el arma.", c: "Para apoyar el arma en una superficie.", d: "Para abastecer el arma.", e: "Para eyectar el casquillo del arma." },
+                respuesta: "c",
+                tema: "partes_arma_escopeta"
+            },
+            {
+                pregunta: "Las escopetas pueden ser usadas en las siguientes modalidades:",
+                opciones: { a: "Defensa personal.", b: "Seguridad privada.", c: "Luaspe.", d: "Todas las anteriores.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "modalidades_uso_escopeta"
+            },
+            {
+                pregunta: "Elija la respuesta incorrecta en el sistema de funcionamiento de las escopetas autorizadas para uso civil:",
+                opciones: { a: "Semiautomática.", b: "Tiro por tiro.", c: "De repetición.", d: "Automático.", e: "Ninguna de las anteriores." },
+                respuesta: "d",
+                tema: "funcionamiento_escopetas"
+            },
+            {
+                pregunta: "Como se realiza el abastecimiento de la escopeta de bombeo:",
+                opciones: { a: "De manera automático.", b: "De manera manual.", c: "De manera Semiautomática.", d: "A y C son correctas.", e: "Ninguna de las anteriores." },
+                respuesta: "b",
+                tema: "funcionamiento_escopetas"
+            },
+            {
+                pregunta: "Como se efectúa la extracción del casquillo de una escopeta de tipo bisagra:",
+                opciones: {
+                    a: "A través de la ventana de eyección.",
+                    b: "Presionando el disparador.",
+                    c: "Accionando el martillo percutor hacia atrás.",
+                    d: "Abrir el cerrojo del arma mediante la palanca liberadora y extraer el casquillo con la mano.",
+                    e: "Ninguna de las anteriores."
+                },
+                respuesta: "d",
+                tema: "funcionamiento_escopetas"
+            },
+            {
+                pregunta: "Las escopetas autorizadas bajo la modalidad de seguridad privada son:",
+                opciones: {
+                    a: "Escopetas con sistema de abastecimiento de bombeo o semiautomáticas, hasta un máximo de doce (12) gauge, con uso fuera del radio urbano.",
+                    b: "Escopetas con sistema de abastecimiento automático o semiautomático, hasta un máximo de doce (12) gauge, con uso fuera del radio urbano.",
+                    c: "Escopetas con sistema de abastecimiento de bombeo o semiautomáticas, hasta un máximo de diez (10) gauge, con uso fuera del radio urbano.",
+                    d: "Escopetas con sistema de abastecimiento automático o semiautomático, hasta un máximo de diez (10) gauge, con uso fuera del radio urbano.",
+                    e: "Ninguna de las anteriores."
+                },
+                respuesta: "a",
+                tema: "normativa_escopetas_seguridad"
+            },
+            {
+                pregunta: "En los revólveres, la recámara se encuentra en la parte anterior del cañón.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "Las armas de ánima lisa tienen menor alcance que las de ánima rayada o estriada.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "Las armas de fuego son consideradas como armas letales.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "La capacidad del cargador permitido para pistola es hasta 15 cartuchos.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "El calibre 9x19 mm está permitido para defensa personal.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Está permitido usar un arma distinta a la autorizada siempre que se lleve consigo la tarjeta de propiedad y licencia.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "En las pistolas semiautomáticas la recámara se encuentra en la parte posterior del cañón.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "Es una medida de seguridad entregar una pistola a otra persona solamente retirando el cargador.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_seguridad"
+            },
+            {
+                pregunta: "Con licencia en la modalidad de defensa personal está permitido el uso de armas de seguridad privada.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "El revólver se abastece a través de una cacerina metálica.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "El percutor es el que extrae el casquillo de la recámara.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "El mantenimiento de las armas de fuego sólo se realizará cuando van a permanecer guardadas.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_seguridad"
+            },
+            {
+                pregunta: "Está permitido efectuar modificaciones a las armas de fuego.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Está permitido usar un arma de fuego distinta a la autorizada en la tarjeta de propiedad.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Una pistola calibre .380 ACP puede disparar un cartucho calibre 9 mm corto.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_municiones"
+            },
+            {
+                pregunta: "El calibre en las armas de fuego se mide en el diámetro exterior del cañón.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "No está permito darle al arma de fuego un uso distinto al autorizado.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Las armas semiautomáticas son aquellas que se cargan automáticamente y disparan tiro por tiro.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "Un revólver calibre .38 SPL puede disparar cartuchos calibre .32 ACP.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_municiones"
+            },
+            {
+                pregunta: "Las carabinas de cadencia automática solo están permitidas para uso civil en la modalidad de deporte y tiro recreativo.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Una de las medidas de seguridad con las armas de fuego es enviar a otra persona a verificar si su arma está cargada o descargada.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_seguridad"
+            },
+            {
+                pregunta: "Las partes o componentes de la munición son bala, casquillo, pólvora y fulminante.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_municiones"
+            },
+            {
+                pregunta: "Mantener el dedo fuera del disparador cuando se manipula un arma de fuego es una medida de seguridad.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_seguridad"
+            },
+            {
+                pregunta: "Una pistola calibre 9x19 mm puede disparar cartuchos calibre 9x17 mm.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_municiones"
+            },
+            {
+                pregunta: "Un revólver calibre .38 SPL puede disparar cartuchos calibre .380 ACP.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_municiones"
+            },
+            {
+                pregunta: "Las escopetas están permitidas para defensa personal para usuarios que habiten en zona rural.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "La diferencia principal entre una pistola y un revólver está en su sistema de carga.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_armas"
+            },
+            {
+                pregunta: "El usuario está autorizado a recortar los cañones de las armas de fuego para hacerlas más portátiles.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Está permitido usar dispositivos láser en armas de defensa personal.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "El número de armas permitidas para defensa personal es de hasta un máximo de dos armas por cada persona, excepcionalmente tres.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Se puede utilizar un arma de la modalidad de defensa personal para la caza deportiva.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Está prohibido portar armas de fuego bajo el consumo de alcohol.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "La pérdida de la vigencia de la licencia suspende el porte del arma de fuego.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "a",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "La SUCAMEC excepcionalmente, autoriza armas largas para defensa personal, únicamente a los usuarios que habiten en zona urbana.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            },
+            {
+                pregunta: "Se puede usar un arma de la modalidad de caza para deporte y tiro recreativo.",
+                opciones: { a: "Verdadero", b: "Falso" },
+                respuesta: "b",
+                tema: "verdadero_falso_normativa"
+            }
+        ];
+
+        // ─── UTILIDADES ──────────────────────────────────────────────────────
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // ─── ESTADO DEL QUIZ ─────────────────────────────────────────────────
+        let preguntasQuizActual = [];
+        let preguntaActualIndex = 0;
+        let puntaje = 0;
+        let respuestasUsuario = [];
+        let timerInterval = null;
+        let tiempoRestante = CONFIG.tiempoLimiteSegundos;
+        let quizTerminado = false;
+
+        const instruccionesDiv = document.getElementById('instrucciones');
+        const comenzarBtn = document.getElementById('comenzar-btn');
+        const topBarDiv = document.getElementById('top-bar');
+        const progressContainerDiv = document.getElementById('progress-container');
+        const instrucCantidad = document.getElementById('instruc-cantidad');
+        const instrucNota = document.getElementById('instruc-nota');
+        const instrucTiempo = document.getElementById('instruc-tiempo');
+        const numeroPreguntaEl = document.getElementById('numero-pregunta');
+        const textoPreguntaEl = document.getElementById('texto-pregunta');
+        const opcionesPreguntaEl = document.getElementById('opciones-pregunta');
+        const siguienteBtn = document.getElementById('siguiente-btn');
+        const reiniciarBtn = document.getElementById('reiniciar-btn');
+        const preguntaActualDiv = document.getElementById('pregunta-actual');
+        const resultadosQuizDiv = document.getElementById('resultados-quiz');
+        const puntajeEl = document.getElementById('puntaje');
+        const mensajeAprobacionEl = document.getElementById('mensaje-aprobacion');
+        const feedbackEl = document.getElementById('feedback');
+        const resumenRespuestasEl = document.getElementById('resumen-respuestas');
+        const progressFill = document.getElementById('progress-fill');
+        const progressLabel = document.getElementById('progress-label');
+        const progressPct = document.getElementById('progress-pct');
+        const timerDisplay = document.getElementById('timer-display');
+        const configDisplay = document.getElementById('config-display');
+
+        // ─── LÓGICA DE SELECCIÓN DE PREGUNTAS ───────────────────────────────
+        function seleccionarPreguntasPorTemasDiversos(todas, cantidad) {
+            let preguntasSeleccionadas = [];
+            if (todas.length === 0) return [];
+
+            const preguntasPorTema = {};
+            const todasShuffled = shuffleArray(todas);
+            todasShuffled.forEach(p => {
+                if (!preguntasPorTema[p.tema]) {
+                    preguntasPorTema[p.tema] = [];
+                }
+                preguntasPorTema[p.tema].push(p);
+            });
+
+            let temasDisponibles = shuffleArray(Object.keys(preguntasPorTema));
+
+            while (preguntasSeleccionadas.length < cantidad && temasDisponibles.length > 0) {
+                const temaActual = temasDisponibles.shift();
+                if (preguntasPorTema[temaActual] && preguntasPorTema[temaActual].length > 0) {
+                    preguntasSeleccionadas.push(preguntasPorTema[temaActual].shift());
+                }
+            }
+
+            let preguntasRestantesFlat = [];
+            Object.values(preguntasPorTema).forEach(arr => preguntasRestantesFlat.push(...arr));
+            shuffleArray(preguntasRestantesFlat);
+
+            while (preguntasSeleccionadas.length < cantidad && preguntasRestantesFlat.length > 0) {
+                const p = preguntasRestantesFlat.shift();
+                if (!preguntasSeleccionadas.some(sp => sp.pregunta === p.pregunta)) {
+                    preguntasSeleccionadas.push(p);
+                }
+            }
+
+            return preguntasSeleccionadas.slice(0, cantidad);
+        }
+
+        // ─── TIMER ───────────────────────────────────────────────────────────
+        function formatearTiempo(segundos) {
+            const m = Math.floor(segundos / 60);
+            const s = segundos % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function actualizarTimer() {
+            timerDisplay.textContent = formatearTiempo(tiempoRestante);
+            if (tiempoRestante <= 30) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        function detenerTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function iniciarTimer() {
+            detenerTimer();
+            tiempoRestante = CONFIG.tiempoLimiteSegundos;
+            actualizarTimer();
+            timerInterval = setInterval(() => {
+                tiempoRestante--;
+                actualizarTimer();
+                if (tiempoRestante <= 0) {
+                    detenerTimer();
+                    terminarQuizPorTiempo();
+                }
+            }, 1000);
+        }
+
+        function terminarQuizPorTiempo() {
+            if (quizTerminado) return;
+            // Marcar como contestada la pregunta actual con lo que tenga (o vacío)
+            const seleccionada = document.querySelector('input[name="opcion"]:checked');
+            if (!seleccionada) {
+                feedbackEl.textContent = 'Se acabó el tiempo. No seleccionaste una respuesta.';
+                feedbackEl.className = 'incorrecto';
+            }
+            // Forzar el procesamiento de la respuesta actual antes de mostrar resultados
+            procesarRespuesta();
+            while (preguntaActualIndex < preguntasQuizActual.length) {
+                procesarRespuesta();
+            }
+            mostrarResultados();
+        }
+
+        // ─── NAVEGACIÓN DE PREGUNTAS ────────────────────────────────────────
+        function cargarPregunta() {
+            if (quizTerminado) return;
+            feedbackEl.textContent = '';
+            siguienteBtn.disabled = true;
+
+            if (preguntaActualIndex < preguntasQuizActual.length) {
+                const preguntaData = preguntasQuizActual[preguntaActualIndex];
+                const numOriginal = preguntaActualIndex + 1;
+                numeroPreguntaEl.textContent = `Pregunta ${numOriginal} de ${preguntasQuizActual.length}`;
+
+                const texto = preguntaData.pregunta.replace(/^\d+\.\s*/, '');
+                textoPreguntaEl.textContent = texto;
+                opcionesPreguntaEl.innerHTML = '';
+
+                const letras = 'abcde';
+                let idx = 0;
+                for (const key in preguntaData.opciones) {
+                    if (!preguntaData.opciones.hasOwnProperty(key)) continue;
+                    const opcionTexto = preguntaData.opciones[key];
+                    const label = document.createElement('label');
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'opcion';
+                    radio.value = key;
+                    radio.addEventListener('change', () => {
+                        document.querySelectorAll('.opciones label').forEach(l => l.classList.remove('selected'));
+                        label.classList.add('selected');
+                        siguienteBtn.disabled = false;
+                    });
+                    label.appendChild(radio);
+                    const letraSpan = document.createElement('span');
+                    letraSpan.className = 'opcion-letra';
+                    letraSpan.textContent = `${key.toUpperCase()})`;
+                    label.appendChild(letraSpan);
+                    const textoSpan = document.createElement('span');
+                    textoSpan.className = 'opcion-texto';
+                    textoSpan.textContent = ` ${opcionTexto}`;
+                    label.appendChild(textoSpan);
+                    opcionesPreguntaEl.appendChild(label);
+                    idx++;
+                }
+
+                const esUltima = (preguntaActualIndex === preguntasQuizActual.length - 1);
+                siguienteBtn.textContent = esUltima ? 'Ver Resultados' : 'Siguiente Pregunta';
+
+                actualizarProgressBar();
+            } else {
+                mostrarResultados();
+            }
+        }
+
+        function actualizarProgressBar() {
+            const total = preguntasQuizActual.length;
+            const actual = preguntaActualIndex;
+            const pct = total > 0 ? Math.round((actual / total) * 100) : 0;
+            progressFill.style.width = `${pct}%`;
+            progressLabel.textContent = `Pregunta ${Math.min(actual + 1, total)} de ${total}`;
+            progressPct.textContent = `${pct}%`;
+        }
+
+        function procesarRespuesta() {
+            const seleccionada = document.querySelector('input[name="opcion"]:checked');
+            if (!seleccionada) {
+                if (tiempoRestante <= 0) {
+                    respuestasUsuario.push({
+                        pregunta: preguntasQuizActual[preguntaActualIndex].pregunta,
+                        opciones: preguntasQuizActual[preguntaActualIndex].opciones,
+                        respuestaUsuario: null,
+                        respuestaCorrecta: preguntasQuizActual[preguntaActualIndex].respuesta,
+                        opcionUsuarioTexto: '(Sin respuesta)',
+                        opcionCorrectaTexto: preguntasQuizActual[preguntaActualIndex].opciones[preguntasQuizActual[preguntaActualIndex].respuesta]
+                    });
+                    preguntaActualIndex++;
+                    return true;
+                }
+                feedbackEl.textContent = 'Por favor, selecciona una opción.';
+                feedbackEl.className = 'incorrecto';
+                return false;
+            }
+
+            const pregunta = preguntasQuizActual[preguntaActualIndex];
+            const respuestaUsuario = seleccionada.value;
+            const respuestaCorrecta = pregunta.respuesta;
+
+            respuestasUsuario.push({
+                pregunta: pregunta.pregunta,
+                opciones: pregunta.opciones,
+                respuestaUsuario: respuestaUsuario,
+                respuestaCorrecta: respuestaCorrecta,
+                opcionUsuarioTexto: pregunta.opciones[respuestaUsuario] || '(Opción no encontrada)',
+                opcionCorrectaTexto: pregunta.opciones[respuestaCorrecta]
+            });
+
+            if (respuestaUsuario === respuestaCorrecta) {
+                puntaje++;
+            }
+
+            preguntaActualIndex++;
+            return true;
+        }
+
+        siguienteBtn.addEventListener('click', () => {
+            if (procesarRespuesta()) {
+                if (preguntaActualIndex < preguntasQuizActual.length) {
+                    cargarPregunta();
+                } else {
+                    mostrarResultados();
+                }
+            }
+        });
+
+        // ─── RESULTADOS ─────────────────────────────────────────────────────
+        function mostrarResultados() {
+            quizTerminado = true;
+            detenerTimer();
+            preguntaActualDiv.style.display = 'none';
+            resultadosQuizDiv.style.display = 'block';
+
+            const total = preguntasQuizActual.length;
+            puntajeEl.textContent = `Tu puntaje: ${puntaje} de ${total} correctas.`;
+
+            resumenRespuestasEl.innerHTML = '<h3>Resumen de respuestas:</h3>';
+            respuestasUsuario.forEach((res, index) => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+
+                const textoPreg = res.pregunta.replace(/^\d+\.\s*/, '');
+                let html = `<p class="resumen-pregunta">${index + 1}. ${textoPreg}</p>`;
+
+                if (res.respuestaUsuario === null) {
+                    html += `<p class="resumen-tu-respuesta incorrecto">Sin respuesta</p>`;
+                } else {
+                    const esCorrecta = res.respuestaUsuario === res.respuestaCorrecta;
+                    html += `<p class="resumen-tu-respuesta">Tu respuesta: ${res.respuestaUsuario.toUpperCase()}) ${res.opcionUsuarioTexto} <span class="${esCorrecta ? 'correcto' : 'incorrecto'}">(${esCorrecta ? 'Correcto' : 'Incorrecto'})</span></p>`;
+                }
+
+                if (res.respuestaUsuario !== res.respuestaCorrecta) {
+                    html += `<p class="resumen-correcta correcto">Respuesta correcta: ${res.respuestaCorrecta.toUpperCase()}) ${res.opcionCorrectaTexto}</p>`;
+                }
+
+                div.innerHTML = html;
+                resumenRespuestasEl.appendChild(div);
+            });
+
+            if (puntaje >= CONFIG.notaMinimaAprobar) {
+                mensajeAprobacionEl.textContent = '¡Felicidades! Has APROBADO el simulacro.';
+                mensajeAprobacionEl.className = 'correcto';
+            } else {
+                mensajeAprobacionEl.textContent = 'No has alcanzado la nota mínima. Sigue practicando.';
+                mensajeAprobacionEl.className = 'incorrecto';
+            }
+        }
+
+        // ─── INICIALIZACIÓN ─────────────────────────────────────────────────
+        function iniciarQuiz() {
+            detenerTimer();
+            quizTerminado = false;
+            puntaje = 0;
+            respuestasUsuario = [];
+            feedbackEl.textContent = '';
+            resumenRespuestasEl.innerHTML = '';
+            instruccionesDiv.style.display = 'none';
+            topBarDiv.style.display = 'flex';
+            progressContainerDiv.style.display = 'block';
+            preguntaActualDiv.style.display = 'block';
+            resultadosQuizDiv.style.display = 'none';
+            siguienteBtn.disabled = true;
+            timerDisplay.classList.remove('warning');
+
+            const cantidad = Math.min(CONFIG.preguntasPorSimulacro, todasLasPreguntas.length);
+            preguntasQuizActual = seleccionarPreguntasPorTemasDiversos(todasLasPreguntas, cantidad);
+
+            if (preguntasQuizActual.length < cantidad && todasLasPreguntas.length >= cantidad) {
+                let faltantes = cantidad - preguntasQuizActual.length;
+                const shuffled = shuffleArray(todasLasPreguntas);
+                for (const p of shuffled) {
+                    if (faltantes <= 0) break;
+                    if (!preguntasQuizActual.some(sp => sp.pregunta === p.pregunta)) {
+                        preguntasQuizActual.push(p);
+                        faltantes--;
+                    }
+                }
+                preguntasQuizActual = shuffleArray(preguntasQuizActual);
+            }
+
+            if (preguntasQuizActual.length === 0 && todasLasPreguntas.length > 0) {
+                preguntasQuizActual = shuffleArray(todasLasPreguntas).slice(0, cantidad);
+            }
+
+            preguntaActualIndex = 0;
+
+            configDisplay.textContent = `${preguntasQuizActual.length} preguntas · Nota mínima: ${CONFIG.notaMinimaAprobar}/${preguntasQuizActual.length}`;
+            actualizarProgressBar();
+            iniciarTimer();
+            cargarPregunta();
+        }
+
+        reiniciarBtn.addEventListener('click', iniciarQuiz);
+
+        comenzarBtn.addEventListener('click', iniciarQuiz);
+
+        instrucCantidad.textContent = CONFIG.preguntasPorSimulacro;
+        instrucNota.textContent = CONFIG.notaMinimaAprobar;
+        instrucTiempo.textContent = Math.floor(CONFIG.tiempoLimiteSegundos / 60);
+    </script>
+
+</body>
+</html>
